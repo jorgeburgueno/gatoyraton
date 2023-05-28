@@ -11,11 +11,20 @@ const UI = (() => {
     cuadros.forEach((cuadro) => {
         cuadro.addEventListener("click", Juego.handleClick);
     })
+    
   }
   
+  const update = (index, value) => {
+    tablero[index] = value;
+    render()
+  }
+
+  const getBoard = () => tablero;
 
   return {
     render,
+    update,
+    getBoard
   }
 })();
 
@@ -38,18 +47,42 @@ const Juego = (() => {
     ]
     jugadorActualIndex = 0;
     gameOver = false;
-    UI.render();
+    UI.render(); 
+    const cuadros = document.querySelectorAll(".cuadro");
+    cuadros.forEach((cuadro) => {
+        cuadro.addEventListener("click", handleClick);
+    }) 
+
    }
    const handleClick = (event) => {
     let index = parseInt(event.target.id.split("-")[1]);
-    alert(index)
+        
+    if(UI.getBoard()[index] !== "")
+    return
+    
+    UI.update(index, jugadores[jugadorActualIndex].mark);
+    jugadorActualIndex = jugadorActualIndex === 0 ? 1 : 0;
+   }
+
+   const reiniciar = () => {
+    for (let i = 0; i < 9; i++) {
+        UI.update(i, "");        
+    }
+    UI.render();
+
    }
 
    return {
     start,
-    handleClick
+    handleClick,
+    reiniciar
    }
 })();
+
+const restartBtn = document.querySelector("#restart-btn");
+restartBtn.addEventListener("click", () => {
+    Juego.reiniciar();
+})
 
 const startBtn = document.querySelector("#start-btn");
 startBtn.addEventListener("click", () => {
