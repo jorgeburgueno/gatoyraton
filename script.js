@@ -1,6 +1,18 @@
-const UI = (() => {
-  let tablero = ["", "", "", "", "", "", "", "", ""]
+// Render mensaje ganador
 
+const displayController = (() => {
+    const renderMensaje = (mensaje) => {
+        document.querySelector("#mensaje").innerHTML = mensaje;
+    }
+    return {
+        renderMensaje
+    }
+  })();
+  
+  // UI
+  const UI = (() => {
+  let tablero = ["", "", "", "", "", "", "", "", ""]
+  
   const render = () => {
     let boardHTML = "";
     tablero.forEach((cuadro, index) => {
@@ -18,28 +30,30 @@ const UI = (() => {
     tablero[index] = value;
     render()
   }
-
+  
   const getBoard = () => tablero;
-
+  
   return {
     render,
     update,
     getBoard
   }
-})();
-
-const crearJugadores = (name, mark) => {
+  })();
+  
+  //Creacion de nombres de jugadores
+  
+  const crearJugadores = (name, mark) => {
     return {
         name,
         mark
     }
-}
-
-const Juego = (() => {
+  }
+  
+  const Juego = (() => {
    let jugadores = [];
    let jugadorActualIndex;
-   let gameOver ;
-
+   let gameOver;
+  
    const start = () => {
     jugadores = [
         crearJugadores(document.querySelector("#player1").value, "X"),
@@ -52,39 +66,82 @@ const Juego = (() => {
     cuadros.forEach((cuadro) => {
         cuadro.addEventListener("click", handleClick);
     }) 
-
+  
    }
    const handleClick = (event) => {
+    if (gameOver){
+        return;
+    }
     let index = parseInt(event.target.id.split("-")[1]);
         
     if(UI.getBoard()[index] !== "")
-    return
+    return;
     
     UI.update(index, jugadores[jugadorActualIndex].mark);
+    
+    if(checarGanador(UI.getBoard(), jugadores[jugadorActualIndex].mark)){
+        gameOver = true;
+        displayController.renderMensaje(`${jugadores[jugadorActualIndex].name} gano!`)
+    } else if (checarEmpate(UI.getBoard())){
+        gameOver = true;
+        displayController.renderMensaje( "Empate!")
+    }
+  
+  
     jugadorActualIndex = jugadorActualIndex === 0 ? 1 : 0;
    }
-
+  
    const reiniciar = () => {
     for (let i = 0; i < 9; i++) {
-        UI.update(i, "");        
+        UI.update(i, "");  
+        gameOver= false;  
+        document.querySelector("#mensaje").innerHTML = ""; 
     }
     UI.render();
-
+  
    }
-
+  
    return {
     start,
     handleClick,
     reiniciar
    }
-})();
-
-const restartBtn = document.querySelector("#restart-btn");
-restartBtn.addEventListener("click", () => {
+  })();
+  
+  //checa las combinaciones necesarias para ganar
+  
+  function checarGanador(board) {
+    const combinacionGanadora = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ]
+    for (let i = 0; i < combinacionGanadora.length; i++){
+        const [a, b, c] = combinacionGanadora [i];
+        if (board[a] && board[a] === board[b] && board[b] ===board[c]){
+            return true;
+        }
+    }
+    return false
+  }
+  
+  function checarEmpate(board) {
+    return board.every(cell => cell !== "")
+  }
+  
+  //botones de comienzo y reinicio
+  
+  const restartBtn = document.querySelector("#restart-btn");
+  restartBtn.addEventListener("click", () => {
     Juego.reiniciar();
-})
-
-const startBtn = document.querySelector("#start-btn");
-startBtn.addEventListener("click", () => {
+  })
+  
+  const startBtn = document.querySelector("#start-btn");
+  startBtn.addEventListener("click", () => {
     Juego.start();
-})
+  })
